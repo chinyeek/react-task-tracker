@@ -35,8 +35,9 @@ const SnapshotFirebase = () => {
   const addTask = (task) => {
     const id = uuidv4();
     const newTask = {id, ...task};
-    fbCol.doc(id).set(newTask).catch((err) => {console.error("something went wrong", err)});
-    // setTasks([...tasks, newTask]);
+    fbCol.doc(id).set(newTask).catch((error) => {console.error("Error adding document:", error)});
+    setTasks([...tasks, newTask]);
+    console.log(tasks);
   };
   
   // Delete task function
@@ -47,16 +48,11 @@ const SnapshotFirebase = () => {
   
   // Toggle reminder function
   const toggleReminder = (id) => {
-    setTasks(tasks.map((t) => {
-      if(t.id === id){
-        // returns every props in t as they are except the "reminder" prop
-        // set "reminder" prop to the opposite of what it used to be
-        return { ...t, reminder: !t.reminder};
-      } else {
-        return t;
-      }
-    }))
-  };
+    fbCol.doc(id).update({
+      "reminder": false,
+    })
+    .catch((error) => {console.log("Error updating document: ", error)});
+  }
 
   if(loading){
     return <h1>Loading ...</h1>
