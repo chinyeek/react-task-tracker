@@ -11,7 +11,7 @@ const SnapshotFirebase = () => {
   const [loading, setLoading] = useState(false);
   const [tasks, setTasks] = useState([]);
 
-  // Read data from Firebase Database
+  // Read data from Firestore
   const fbDB = firebase.firestore();
   const fbCol = fbDB.collection('tasks');
   
@@ -31,27 +31,32 @@ const SnapshotFirebase = () => {
     getTasks();
   }, []);
 
-  // Add task to Firebase DB
+  // Add task to Firestore
   const addTask = (task) => {
     const id = uuidv4();
     const newTask = {id, ...task};
     fbCol.doc(id).set(newTask).catch((error) => {console.error("Error adding document:", error)});
-    setTasks([...tasks, newTask]);
-    console.log(tasks);
   };
   
-  // Delete task function
+  // Delete task from Firestore
   const deleteTask = (id) => {
     fbCol.doc(id).delete().catch((error) => {console.error("Error removing document: ", error)});
-    // setTasks(tasks.filter((t) => t.id !== id));
   };
   
-  // Toggle reminder function
+  // Toggle reminder - Update Reminder value in Firestore
   const toggleReminder = (id) => {
-    fbCol.doc(id).update({
-      "reminder": false,
-    })
-    .catch((error) => {console.log("Error updating document: ", error)});
+    fbCol.doc(id).get()
+      .then(d => {
+        if(d.exists){
+          let reminderStatus = d.data().reminder;
+          fbCol.doc(id).update({
+            "reminder": !reminderStatus,
+          });
+        } else {
+          console.log("no such document");
+        }
+      })
+      .catch(error => {console.log("Error getting data by id: ", error)});
   }
 
   if(loading){
