@@ -1,4 +1,4 @@
-import {useState, useEffect, Fragment} from 'react'
+import {useState, useEffect} from 'react'
 import Header from './components/Header'
 import AddTask from './components/AddTask'
 import Tasks from './components/Tasks'
@@ -35,23 +35,30 @@ const SnapshotFirebase = () => {
   const addTask = (task) => {
     const id = uuidv4();
     const newTask = {id, ...task};
-    fbCol.doc(id).set(newTask).catch((error) => {console.error("Error adding document:", error)});
-    setTasks([...tasks, newTask]);
-    console.log(tasks);
+    fbCol.doc(id)
+      .set(newTask)
+      .catch((error) => {console.error("Error adding document:", error)});
   };
   
   // Delete task function
   const deleteTask = (id) => {
-    fbCol.doc(id).delete().catch((error) => {console.error("Error removing document: ", error)});
-    // setTasks(tasks.filter((t) => t.id !== id));
+    fbCol.doc(id)
+      .delete()
+      .catch((error) => {console.error("Error removing document: ", error)});
   };
   
   // Toggle reminder function
   const toggleReminder = (id) => {
-    fbCol.doc(id).update({
-      "reminder": false,
-    })
-    .catch((error) => {console.log("Error updating document: ", error)});
+    fbCol.doc(id)
+      .get()
+      .then((e) => {
+        if(e.exists){
+          return e.ref.update({reminder: !e.data().reminder});
+        } else {
+          throw new Error("document not found");
+        }
+      })
+      .catch((error) => {console.log("Error updating document: ", error)});
   }
 
   if(loading){
